@@ -8,6 +8,7 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "../../firebase";
+import Image from "next/image"; // Import Image component
 
 export default function Signup() {
   const { user, loading } = useAuth();
@@ -79,9 +80,11 @@ export default function Signup() {
         <button type="submit">Sign Up</button>
       </form>
       <button className="google-btn" onClick={handleGoogleSignIn}>
-        <img
+        <Image
           src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
           alt="Google Logo"
+          width={24}
+          height={24}
         />
         Sign up with Google
       </button>
