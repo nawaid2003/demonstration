@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
-import { db, doc, getDoc } from "../../firebase";
+import { db, doc, getDoc, auth } from "../../firebase"; // Added auth import here
 
 export default function Profile() {
   const { user, loading } = useAuth();
