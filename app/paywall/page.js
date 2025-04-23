@@ -68,6 +68,9 @@ export default function Paywall() {
         You’re one step away from your personalized badge! Complete a one-time
         payment of <strong>5 EUR</strong> to view your badge and access premium
         features.
+        <br />
+        <br />
+        testing new feature
       </p>
       <p className="fake-payment-note">
         (This is a demo paywall. Click &quot;Pay Now&quot; to proceed.)
