@@ -1,4 +1,3 @@
-// In firebase.js
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -10,16 +9,7 @@ import {
 } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-// For debugging
+// Log environment variables availability
 console.log(
   "Firebase Config - API Key exists:",
   !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY
@@ -45,51 +35,89 @@ console.log(
   !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 );
 
-// Initialize Firebase
-let app;
-let auth;
-let db;
+// Try using direct values instead of environment variables for debugging
+const firebaseConfig = {
+  apiKey: "AIzaSyAyRTFOvB3OEdgTsXRNeUfLTSPQHxFCrk4",
+  authDomain: "pronouns-71f78.firebaseapp.com",
+  projectId: "pronouns-71f78",
+  storageBucket: "pronouns-71f78.appspot.com", // Note: corrected from .firebasestorage.app
+  messagingSenderId: "675350212271",
+  appId: "1:675350212271:web:caa74253deae263ffd2e5a",
+};
 
-// Only initialize in browser context
+// Fallback Firebase methods to prevent crashes
+const createFallbackAuth = () => {
+  return {
+    onAuthStateChanged: (callback) => {
+      console.warn("Using fallback auth - Firebase failed to initialize");
+      setTimeout(() => callback(null), 0);
+      return () => {};
+    },
+    signInWithEmailAndPassword: () => {
+      console.error("Auth not initialized");
+      return Promise.reject(
+        new Error("Firebase authentication is not available")
+      );
+    },
+    createUserWithEmailAndPassword: () => {
+      console.error("Auth not initialized");
+      return Promise.reject(
+        new Error("Firebase authentication is not available")
+      );
+    },
+    signInWithPopup: () => {
+      console.error("Auth not initialized");
+      return Promise.reject(
+        new Error("Firebase authentication is not available")
+      );
+    },
+    signOut: () => {
+      console.error("Auth not initialized");
+      return Promise.reject(
+        new Error("Firebase authentication is not available")
+      );
+    },
+    currentUser: null,
+  };
+};
+
+// Initialize Firebase
+let app, auth, db;
+
+// Only attempt initialization in browser
 if (typeof window !== "undefined") {
   try {
+    // This may throw an error if config is invalid
     app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    console.log("Firebase initialized successfully in browser");
-  } catch (error) {
-    console.error("Firebase initialization error:", error.message);
+    console.log("Firebase app initialization successful");
 
-    // Create a minimal implementation to prevent crashes
-    auth = {
-      onAuthStateChanged: (callback, onError) => {
-        if (onError) {
-          onError(new Error("Firebase auth failed to initialize"));
-        } else {
-          callback(null);
-        }
-        return () => {}; // Return unsubscribe function
-      },
-      currentUser: null,
-      signInWithEmailAndPassword: () =>
-        Promise.reject(new Error("Auth not initialized")),
-      createUserWithEmailAndPassword: () =>
-        Promise.reject(new Error("Auth not initialized")),
-      signInWithPopup: () => Promise.reject(new Error("Auth not initialized")),
-      signOut: () => Promise.reject(new Error("Auth not initialized")),
-    };
+    try {
+      auth = getAuth(app);
+      console.log("Firebase auth initialized successfully");
+    } catch (authError) {
+      console.error("Failed to initialize Firebase auth:", authError);
+      auth = createFallbackAuth();
+    }
 
-    db = {
-      collection: () => ({
-        doc: () => ({
-          get: () => Promise.reject(new Error("Firestore not initialized")),
-          set: () => Promise.reject(new Error("Firestore not initialized")),
-        }),
-      }),
-    };
+    try {
+      db = getFirestore(app);
+      console.log("Firebase Firestore initialized successfully");
+    } catch (dbError) {
+      console.error("Failed to initialize Firestore:", dbError);
+      db = {};
+    }
+  } catch (appError) {
+    console.error("Failed to initialize Firebase app:", appError);
+    auth = createFallbackAuth();
+    db = {};
   }
+} else {
+  console.log("Skipping Firebase initialization in server context");
+  auth = createFallbackAuth();
+  db = {};
 }
 
+// Export the same interfaces
 export {
   auth,
   db,

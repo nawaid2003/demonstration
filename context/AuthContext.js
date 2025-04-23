@@ -12,10 +12,12 @@ export function AuthProvider({ children }) {
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    // Check if auth is properly initialized
-    if (!auth) {
-      console.error("Firebase auth is not initialized");
-      setAuthError("Firebase authentication failed to initialize");
+    console.log("Setting up auth state listener...");
+
+    // Safety check for auth object
+    if (!auth || typeof auth.onAuthStateChanged !== "function") {
+      console.error("Auth object is invalid:", auth);
+      setAuthError("Firebase authentication system unavailable");
       setLoading(false);
       return () => {};
     }
@@ -23,78 +25,61 @@ export function AuthProvider({ children }) {
     try {
       const unsubscribe = auth.onAuthStateChanged(
         async (currentUser) => {
-          console.log("AuthContext: User changed:", !!currentUser);
+          console.log(
+            "Auth state changed:",
+            currentUser ? "User logged in" : "No user"
+          );
           setUser(currentUser);
-          if (currentUser) {
-            const fetchUserData = async (attempt = 1, maxAttempts = 3) => {
-              try {
-                // Check if db is properly initialized
-                if (!db) {
-                  console.error("Firestore db is not initialized");
-                  setAuthError("Firestore database failed to initialize");
-                  setLoading(false);
-                  return;
-                }
 
+          if (currentUser) {
+            try {
+              // Check if db and required methods exist
+              if (!db || !doc || !getDoc) {
+                console.error("Firestore db or methods unavailable");
+                setAuthError("Firestore database unavailable");
+                setLoading(false);
+                return;
+              }
+
+              try {
                 const userDocRef = doc(db, "users", currentUser.uid);
                 const userDoc = await getDoc(userDocRef);
-                console.log(
-                  "AuthContext: Fetched user doc (attempt",
-                  attempt,
-                  "):",
-                  userDoc.exists(),
-                  "answers:",
-                  !!userDoc.data()?.answers,
-                  "hasPaid:",
-                  !!userDoc.data()?.hasPaid
-                );
+
+                console.log("User document exists:", userDoc.exists());
                 if (userDoc.exists()) {
-                  setHasAnsweredQuestions(!!userDoc.data()?.answers);
-                  setHasPaid(!!userDoc.data()?.hasPaid);
+                  const userData = userDoc.data();
+                  setHasAnsweredQuestions(!!userData?.answers);
+                  setHasPaid(!!userData?.hasPaid);
                 } else {
                   setHasAnsweredQuestions(false);
                   setHasPaid(false);
                 }
-                setLoading(false);
-              } catch (err) {
-                console.error(
-                  "AuthContext Firestore error (attempt",
-                  attempt,
-                  "):",
-                  err.code,
-                  err.message
-                );
-                if (attempt < maxAttempts && err.code !== "permission-denied") {
-                  console.log("Retrying fetch in 1s...");
-                  setTimeout(
-                    () => fetchUserData(attempt + 1, maxAttempts),
-                    1000
-                  );
-                } else {
-                  setHasAnsweredQuestions(false);
-                  setHasPaid(false);
-                  setLoading(false);
-                }
+              } catch (firestoreError) {
+                console.error("Firestore error:", firestoreError);
+                setAuthError(`Database error: ${firestoreError.message}`);
               }
-            };
-            fetchUserData();
+            } catch (error) {
+              console.error("Error processing user data:", error);
+              setAuthError(`Error processing user data: ${error.message}`);
+            }
           } else {
             setHasAnsweredQuestions(false);
             setHasPaid(false);
-            setLoading(false);
           }
+
+          setLoading(false);
         },
         (error) => {
           console.error("Auth state change error:", error);
-          setAuthError(error.message);
+          setAuthError(`Authentication error: ${error.message}`);
           setLoading(false);
         }
       );
 
       return unsubscribe;
     } catch (error) {
-      console.error("Error setting up auth listener:", error);
-      setAuthError("Failed to setup authentication");
+      console.error("Failed to set up auth listener:", error);
+      setAuthError(`Failed to set up authentication: ${error.message}`);
       setLoading(false);
       return () => {};
     }

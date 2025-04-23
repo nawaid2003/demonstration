@@ -18,12 +18,10 @@ export default function Login() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    console.log("Login: loading=", loading, "user=", !!user);
-    if (!loading && user) {
-      console.log("Redirecting to /questions");
-      router.push("/questions");
+    if (authError) {
+      setError(authError);
     }
-  }, [user, loading, router]);
+  }, [authError]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,11 +35,15 @@ export default function Login() {
 
   const handleGoogleSignIn = async () => {
     try {
+      setError(""); // Clear previous errors
+      console.log("Starting Google sign-in");
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      console.log("Google sign-in successful");
       router.push("/questions");
     } catch (err) {
-      setError(err.message);
+      console.error("Google sign-in error:", err);
+      setError(`Sign-in error: ${err.message}`);
     }
   };
 

@@ -18,12 +18,10 @@ export default function Signup() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    console.log("Signup: loading=", loading, "user=", !!user);
-    if (!loading && user) {
-      console.log("Redirecting to /questions");
-      router.push("/questions");
+    if (authError) {
+      setError(authError);
     }
-  }, [user, loading, router]);
+  }, [authError]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -37,11 +35,15 @@ export default function Signup() {
 
   const handleGoogleSignIn = async () => {
     try {
+      setError(""); // Clear previous errors
+      console.log("Starting Google sign-in");
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      console.log("Google sign-in successful");
       router.push("/questions");
     } catch (err) {
-      setError(err.message);
+      console.error("Google sign-in error:", err);
+      setError(`Sign-in error: ${err.message}`);
     }
   };
 
@@ -79,6 +81,7 @@ export default function Signup() {
         </div>
         <button type="submit">Sign Up</button>
       </form>
+      {authError && <p className="error">Authentication error: {authError}</p>}
       <button className="google-btn" onClick={handleGoogleSignIn}>
         <Image
           src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
