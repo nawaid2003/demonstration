@@ -21,7 +21,7 @@ export default function Paywall() {
       console.log("Redirecting to /login: No user");
       router.push("/login");
     }
-  }, [user, loading, router]);
+  }, [user, loading, hasAnsweredQuestions, router]); // Added hasAnsweredQuestions to dependencies
 
   const handlePayment = async () => {
     if (!user?.uid) {
