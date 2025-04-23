@@ -1,16 +1,3 @@
-export {
-  auth,
-  db,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signOut,
-  doc,
-  setDoc,
-  getDoc,
-};
-
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -57,12 +44,28 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+// Initialize Firebase and define auth, db at top level
+let auth, db;
 try {
   const app = initializeApp(firebaseConfig);
   console.log("Firebase initialized successfully");
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+  auth = getAuth(app);
+  db = getFirestore(app);
 } catch (err) {
   console.error("Firebase initialization failed:", err.message);
   throw new Error(`Firebase initialization failed: ${err.message}`);
 }
+
+// Export all required Firebase functions and instances
+export {
+  auth,
+  db,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  doc,
+  setDoc,
+  getDoc,
+};
