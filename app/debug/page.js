@@ -1,7 +1,7 @@
 // pages/debug.js or app/debug/page.js
 "use client";
 import { useEffect, useState } from "react";
-import { auth } from "../firebase";
+import { auth } from "../../firebase";
 
 export default function Debug() {
   const [status, setStatus] = useState("Loading...");
