@@ -1,4 +1,5 @@
-import { initializeApp, getApps } from "firebase/app";
+// In firebase.js
+import { initializeApp } from "firebase/app";
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -9,7 +10,16 @@ import {
 } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
-// Log environment variables (without exposing sensitive values)
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+// For debugging
 console.log(
   "Firebase Config - API Key exists:",
   !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY
@@ -35,39 +45,51 @@ console.log(
   !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 );
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+// Initialize Firebase
+let app;
+let auth;
+let db;
 
-// Initialize Firebase and define auth, db with fallbacks
-let auth = null;
-let db = null;
-
-// Only initialize if not in a server-side static build context
-const isBuildTime =
-  process.env.NODE_ENV === "production" && typeof window === "undefined";
-
-try {
-  // Check if Firebase is already initialized
-  if (isBuildTime) {
-    console.log("Skipping Firebase initialization during build time");
-  } else {
-    const app = initializeApp(firebaseConfig);
-    console.log("Firebase initialized successfully");
+// Only initialize in browser context
+if (typeof window !== "undefined") {
+  try {
+    app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    console.log("Firebase initialized successfully in browser");
+  } catch (error) {
+    console.error("Firebase initialization error:", error.message);
+
+    // Create a minimal implementation to prevent crashes
+    auth = {
+      onAuthStateChanged: (callback, onError) => {
+        if (onError) {
+          onError(new Error("Firebase auth failed to initialize"));
+        } else {
+          callback(null);
+        }
+        return () => {}; // Return unsubscribe function
+      },
+      currentUser: null,
+      signInWithEmailAndPassword: () =>
+        Promise.reject(new Error("Auth not initialized")),
+      createUserWithEmailAndPassword: () =>
+        Promise.reject(new Error("Auth not initialized")),
+      signInWithPopup: () => Promise.reject(new Error("Auth not initialized")),
+      signOut: () => Promise.reject(new Error("Auth not initialized")),
+    };
+
+    db = {
+      collection: () => ({
+        doc: () => ({
+          get: () => Promise.reject(new Error("Firestore not initialized")),
+          set: () => Promise.reject(new Error("Firestore not initialized")),
+        }),
+      }),
+    };
   }
-} catch (err) {
-  console.error("Firebase initialization failed:", err.message);
-  // Don't throw error, just log it
 }
 
-// Export all required Firebase functions and instances
 export {
   auth,
   db,

@@ -11,7 +11,7 @@ import { auth } from "../../firebase";
 import Image from "next/image"; // Import Image component
 
 export default function Signup() {
-  const { user, loading } = useAuth();
+  const { user, loading, authError } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -11,7 +11,7 @@ import { auth } from "../../firebase";
 import Image from "next/image"; // Import Image component
 
 export default function Login() {
-  const { user, loading } = useAuth();
+  const { user, loading, authError } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -79,6 +79,7 @@ export default function Login() {
         </div>
         <button type="submit">Log In</button>
       </form>
+      {authError && <p className="error">Authentication error: {authError}</p>}
       <button className="google-btn" onClick={handleGoogleSignIn}>
         <Image
           src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
