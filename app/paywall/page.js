@@ -70,8 +70,9 @@ export default function Paywall() {
         features.
       </p>
       <p className="fake-payment-note">
-        (This is a demo paywall. Click "Pay Now" to proceed.)
+        (This is a demo paywall. Click &quot;Pay Now&quot; to proceed.)
       </p>
+
       <button className="pay-btn" onClick={handlePayment}>
         Pay 5 EUR
       </button>
