@@ -225,7 +225,7 @@ export default function Results() {
     <div className="container">
       <header></header>
       <h1>Your Pronoun Badge 🌈</h1>
-      <p>Here's your personalized certificate, crafted with love and pride!</p>
+      <p>Here is your personalized certificate, crafted with love and pride!</p>
       <canvas
         ref={canvasRef}
         className="badge-canvas"
