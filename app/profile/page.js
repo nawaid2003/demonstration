@@ -2,78 +2,134 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
-import { db, doc, getDoc, auth } from "../../firebase"; // Added auth import here
+import { db, doc, getDoc, auth } from "../../firebase"; // Import auth
 
 export default function Profile() {
-  const { user, loading } = useAuth();
+  const { user, loading, hasAnsweredQuestions, hasPaid } = useAuth(); // Removed unused logout
   const router = useRouter();
-  const [userData, setUserData] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
-    console.log("Profile: loading=", loading, "user=", !!user);
     if (!loading && !user) {
       console.log("Redirecting to /login: No user");
       router.push("/login");
-    } else if (user) {
-      const fetchUserData = async () => {
+      return;
+    }
+
+    if (user) {
+      const fetchProfile = async () => {
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
-            setUserData(userDoc.data());
+            setProfile(userDoc.data());
           }
         } catch (err) {
-          console.error("Error fetching user data:", err);
+          console.error("Error fetching profile:", err);
+        } finally {
+          setLoadingProfile(false);
         }
       };
-      fetchUserData();
+
+      fetchProfile();
     }
   }, [user, loading, router]);
 
-  if (loading || !userData)
+  const handleLogout = async () => {
+    try {
+      await auth.signOut(); // Use auth.signOut directly
+      console.log("Successfully signed out");
+      router.push("/login"); // Redirect to login page after successful logout
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  if (loading || loadingProfile) {
     return (
       <div className="container">
-        <p>Loading...</p>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading your profile...</p>
+        </div>
       </div>
     );
+  }
 
   return (
     <div className="container">
       <header></header>
-      <h1>Your Profile 🌟</h1>
-      <p>Welcome back, {userData.displayName || userData.email}!</p>
-      <div className="profile-card">
-        <p>
-          <strong>Email:</strong> {userData.email}
-        </p>
-        {userData.answers && (
-          <>
+      <h1>Your Profile</h1>
+
+      {/* Profile content with proper spacing */}
+      <div className="profile-content">
+        {profile && (
+          <div className="profile-card">
+            <h2>Your Information</h2>
             <p>
-              <strong>Attraction:</strong> {userData.answers.attraction}
+              <strong>Email:</strong> {user.email}
             </p>
+            {profile.answers && (
+              <>
+                <p>
+                  <strong>Identity:</strong>{" "}
+                  {profile.answers.identity || "Not specified"}
+                </p>
+                <p>
+                  <strong>Pronouns:</strong>{" "}
+                  {profile.answers.pronouns || "Not specified"}
+                </p>
+              </>
+            )}
             <p>
-              <strong>Intensity:</strong> {userData.answers.intensity}
+              <strong>Account Status:</strong>{" "}
+              {hasPaid ? "Premium Member" : "Free Account"}
             </p>
-            <p>
-              <strong>Relationship:</strong> {userData.answers.relationship}
-            </p>
-            <p>
-              <strong>Culture Influence:</strong> {userData.answers.culture}
-            </p>
-            <p>
-              <strong>Identity:</strong> {userData.answers.identity}
-            </p>
-          </>
+          </div>
         )}
-        <p>
-          <strong>Has Paid:</strong> {userData.hasPaid ? "Yes" : "No"}
-        </p>
+
+        {/* Badge preview if applicable */}
+        {hasAnsweredQuestions && hasPaid && (
+          <div className="badge-preview-section">
+            <h3>Your Badge</h3>
+            <p>View your personalized pronoun badge.</p>
+          </div>
+        )}
       </div>
-      {userData.hasPaid && (
-        <button onClick={() => router.push("/results")}>View Your Badge</button>
-      )}
-      <button onClick={() => auth.signOut().then(() => router.push("/"))}>
-        Sign Out
-      </button>
+
+      {/* Button container with proper spacing */}
+      <div className="profile-actions">
+        {hasAnsweredQuestions && hasPaid ? (
+          <button
+            onClick={() => router.push("/results")}
+            className="view-badge-btn"
+          >
+            View Your Badge
+          </button>
+        ) : hasAnsweredQuestions ? (
+          <button
+            onClick={() => router.push("/paywall")}
+            className="upgrade-btn"
+          >
+            Upgrade to See Your Badge
+          </button>
+        ) : (
+          <button
+            onClick={() => router.push("/questions")}
+            className="questions-btn"
+          >
+            Complete Questions
+          </button>
+        )}
+
+        <button onClick={() => router.push("/")} className="home-btn">
+          Back to Home
+        </button>
+
+        <button onClick={handleLogout} className="signout-btn">
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 }
