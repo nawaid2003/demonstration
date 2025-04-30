@@ -8,20 +8,24 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "../../firebase";
-import Image from "next/image"; // Import Image component
+import Image from "next/image";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function Login() {
-  const { user, loading, authError } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const { language, toggleLanguage, translations } = useLanguage();
 
   useEffect(() => {
-    if (authError) {
-      setError(authError);
+    console.log("Login: loading=", loading, "user=", !!user);
+    if (!loading && user) {
+      console.log("Redirecting to /questions");
+      router.push("/questions");
     }
-  }, [authError]);
+  }, [user, loading, router]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -35,30 +39,26 @@ export default function Login() {
 
   const handleGoogleSignIn = async () => {
     try {
-      setError(""); // Clear previous errors
-      console.log("Starting Google sign-in");
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      console.log("Google sign-in successful");
       router.push("/questions");
     } catch (err) {
-      console.error("Google sign-in error:", err);
-      setError(`Sign-in error: ${err.message}`);
+      setError(err.message);
     }
   };
 
   if (loading)
     return (
       <div className="container">
-        <p>Loading...</p>
+        <p>{translations[language].loading}</p>
       </div>
     );
 
   return (
     <div className="container">
       <header></header>
-      <h1>Log In to Pronoun 💖</h1>
-      <p>Sign in to continue your journey with us!</p>
+      <h1>{translations[language].logInTitle}</h1>
+      <p>{translations[language].continueJourney}</p>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleLogin}>
         <div>
@@ -66,7 +66,7 @@ export default function Login() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
+            placeholder={translations[language].email}
             required
           />
         </div>
@@ -75,13 +75,12 @@ export default function Login() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder={translations[language].password}
             required
           />
         </div>
-        <button type="submit">Log In</button>
+        <button type="submit">{translations[language].signIn}</button>
       </form>
-      {authError && <p className="error">Authentication error: {authError}</p>}
       <button className="google-btn" onClick={handleGoogleSignIn}>
         <Image
           src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -89,14 +88,17 @@ export default function Login() {
           width={24}
           height={24}
         />
-        Sign in with Google
+        {translations[language].signInWithGoogleLogin}
       </button>
       <p>
-        Don’t have an account?{" "}
-        <a href="/signup" style={{ color: "#ff69b4" }}>
-          Sign Up
+        {translations[language].dontHaveAccount}{" "}
+        <a href="/signup" style={{ color: "#FF9A8B" }}>
+          {translations[language].signUpLink}
         </a>
       </p>
+      <button onClick={toggleLanguage}>
+        {translations[language].languageToggle}
+      </button>
     </div>
   );
 }

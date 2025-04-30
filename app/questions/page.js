@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { db, doc, setDoc } from "../../firebase";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function Questions() {
   const { user, loading } = useAuth();
@@ -16,6 +17,7 @@ export default function Questions() {
   });
   const [error, setError] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const { language, toggleLanguage, translations } = useLanguage();
 
   useEffect(() => {
     console.log("Questions: loading=", loading, "user=", !!user);
@@ -35,12 +37,12 @@ export default function Questions() {
       (val) => val && val !== ""
     );
     if (!allAnswered) {
-      setError("Please answer all questions");
+      setError(translations[language].errorAllQuestions);
       console.log("Validation failed: Missing answers");
       return;
     }
     if (!user?.uid) {
-      setError("User not authenticated");
+      setError(translations[language].errorNotAuthenticated);
       console.log("Error: No user.uid");
       router.push("/login");
       return;
@@ -80,105 +82,151 @@ export default function Questions() {
   if (loading || !user)
     return (
       <div className="container">
-        <p>Loading...</p>
+        <p>{translations[language].loading}</p>
       </div>
     );
 
   return (
     <div className="container">
       <header></header>
-      <h1>Explore Your Sexuality 💖</h1>
-      <p>
-        Answer these questions to discover your identity. Your responses are
-        private.
-      </p>
+      <h1>{translations[language].questionsTitle}</h1>
+      <p>{translations[language].questionsSubtitle}</p>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label>1. Who are you attracted to?</label>
+          <label>{translations[language].attractionQuestion}</label>
           <select
             name="attraction"
             value={answers.attraction}
             onChange={handleChange}
             required
           >
-            <option value="">Select...</option>
-            <option value="men">Men</option>
-            <option value="women">Women</option>
-            <option value="nonbinary">Non-binary people</option>
-            <option value="all">All genders</option>
-            <option value="none">No one</option>
-            <option value="unsure">Unsure</option>
+            <option value="">{translations[language].attractionSelect}</option>
+            <option value="men">{translations[language].attractionMen}</option>
+            <option value="women">
+              {translations[language].attractionWomen}
+            </option>
+            <option value="nonbinary">
+              {translations[language].attractionNonbinary}
+            </option>
+            <option value="all">{translations[language].attractionAll}</option>
+            <option value="none">
+              {translations[language].attractionNone}
+            </option>
+            <option value="unsure">
+              {translations[language].attractionUnsure}
+            </option>
           </select>
         </div>
         <div>
-          <label>2. How strong is your attraction?</label>
+          <label>{translations[language].intensityQuestion}</label>
           <select
             name="intensity"
             value={answers.intensity}
             onChange={handleChange}
             required
           >
-            <option value="">Select...</option>
-            <option value="strong">Very strong</option>
-            <option value="moderate">Moderate</option>
-            <option value="weak">Weak</option>
-            <option value="none">None</option>
-            <option value="unsure">Unsure</option>
+            <option value="">{translations[language].intensitySelect}</option>
+            <option value="strong">
+              {translations[language].intensityStrong}
+            </option>
+            <option value="moderate">
+              {translations[language].intensityModerate}
+            </option>
+            <option value="weak">{translations[language].intensityWeak}</option>
+            <option value="none">{translations[language].intensityNone}</option>
+            <option value="unsure">
+              {translations[language].intensityUnsure}
+            </option>
           </select>
         </div>
         <div>
-          <label>3. What relationship structure feels right?</label>
+          <label>{translations[language].relationshipQuestion}</label>
           <select
             name="relationship"
             value={answers.relationship}
             onChange={handleChange}
             required
           >
-            <option value="">Select...</option>
-            <option value="monogamous">Monogamous</option>
-            <option value="polyamorous">Open/Polyamorous</option>
-            <option value="none">No relationships</option>
-            <option value="unsure">Unsure</option>
+            <option value="">
+              {translations[language].relationshipSelect}
+            </option>
+            <option value="monogamous">
+              {translations[language].relationshipMonogamous}
+            </option>
+            <option value="polyamorous">
+              {translations[language].relationshipPolyamorous}
+            </option>
+            <option value="none">
+              {translations[language].relationshipNone}
+            </option>
+            <option value="unsure">
+              {translations[language].relationshipUnsure}
+            </option>
           </select>
         </div>
         <div>
-          <label>4. How much does culture/religion influence you?</label>
+          <label>{translations[language].cultureQuestion}</label>
           <select
             name="culture"
             value={answers.culture}
             onChange={handleChange}
             required
           >
-            <option value="">Select...</option>
-            <option value="a lot">A lot</option>
-            <option value="some">Some</option>
-            <option value="not much">Not much</option>
-            <option value="not at all">Not at all</option>
-            <option value="unsure">Unsure</option>
+            <option value="">{translations[language].cultureSelect}</option>
+            <option value="a lot">{translations[language].cultureALot}</option>
+            <option value="some">{translations[language].cultureSome}</option>
+            <option value="not much">
+              {translations[language].cultureNotMuch}
+            </option>
+            <option value="not at all">
+              {translations[language].cultureNotAtAll}
+            </option>
+            <option value="unsure">
+              {translations[language].cultureUnsure}
+            </option>
           </select>
         </div>
         <div>
-          <label>5. How do you identify your sexuality?</label>
+          <label>{translations[language].identityQuestion}</label>
           <select
             name="identity"
             value={answers.identity}
             onChange={handleChange}
             required
           >
-            <option value="">Select...</option>
-            <option value="heterosexual">Heterosexual</option>
-            <option value="homosexual">Homosexual</option>
-            <option value="bisexual">Bisexual</option>
-            <option value="asexual">Asexual</option>
-            <option value="pansexual">Pansexual</option>
-            <option value="queer">Queer</option>
-            <option value="other">Other</option>
-            <option value="unsure">Unsure</option>
+            <option value="">{translations[language].identitySelect}</option>
+            <option value="heterosexual">
+              {translations[language].identityHeterosexual}
+            </option>
+            <option value="homosexual">
+              {translations[language].identityHomosexual}
+            </option>
+            <option value="bisexual">
+              {translations[language].identityBisexual}
+            </option>
+            <option value="asexual">
+              {translations[language].identityAsexual}
+            </option>
+            <option value="pansexual">
+              {translations[language].identityPansexual}
+            </option>
+            <option value="queer">
+              {translations[language].identityQueer}
+            </option>
+            <option value="other">
+              {translations[language].identityOther}
+            </option>
+            <option value="unsure">
+              {translations[language].identityUnsure}
+            </option>
           </select>
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit">{translations[language].submit}</button>
       </form>
+      <button onClick={toggleLanguage}>
+        {translations[language].languageToggle}
+      </button>
     </div>
   );
 }

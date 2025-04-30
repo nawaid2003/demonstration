@@ -3,10 +3,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { db, doc, setDoc } from "../../firebase";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function Paywall() {
   const { user, loading, hasAnsweredQuestions } = useAuth();
   const router = useRouter();
+  const { language, toggleLanguage, translations } = useLanguage();
 
   useEffect(() => {
     console.log(
@@ -21,7 +23,7 @@ export default function Paywall() {
       console.log("Redirecting to /login: No user");
       router.push("/login");
     }
-  }, [user, loading, hasAnsweredQuestions, router]); // Added hasAnsweredQuestions to dependencies
+  }, [user, loading, hasAnsweredQuestions, router]);
 
   const handlePayment = async () => {
     if (!user?.uid) {
@@ -56,28 +58,26 @@ export default function Paywall() {
   if (loading)
     return (
       <div className="container">
-        <p>Loading...</p>
+        <p>{translations[language].loading}</p>
       </div>
     );
 
   return (
     <div className="container">
       <header></header>
-      <h1>Unlock Your Pronoun Badge 🏳️‍🌈</h1>
-      <p className="paywall-text">
-        You’re one step away from your personalized badge! Complete a one-time
-        payment of <strong>5 EUR</strong> to view your badge and access premium
-        features.
-        <br />
-        <br />
-        testing new feature
-      </p>
+      <h1>{translations[language].unlockBadge}</h1>
+      <p
+        className="paywall-text"
+        dangerouslySetInnerHTML={{ __html: translations[language].paywallText }}
+      ></p>
       <p className="fake-payment-note">
-        (This is a demo paywall. Click &quot;Pay Now&quot; to proceed.)
+        {translations[language].fakePaymentNote}
       </p>
-
       <button className="pay-btn" onClick={handlePayment}>
-        Pay 5 EUR
+        {translations[language].payNow}
+      </button>
+      <button onClick={toggleLanguage}>
+        {translations[language].languageToggle}
       </button>
     </div>
   );

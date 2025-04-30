@@ -2,13 +2,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
-import { db, doc, getDoc, auth } from "../../firebase"; // Import auth
+import { db, doc, getDoc, auth } from "../../firebase";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function Profile() {
-  const { user, loading, hasAnsweredQuestions, hasPaid } = useAuth(); // Removed unused logout
+  const { user, loading, hasAnsweredQuestions, hasPaid } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const { language, toggleLanguage, translations } = useLanguage();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -37,9 +39,9 @@ export default function Profile() {
 
   const handleLogout = async () => {
     try {
-      await auth.signOut(); // Use auth.signOut directly
+      await auth.signOut();
       console.log("Successfully signed out");
-      router.push("/login"); // Redirect to login page after successful logout
+      router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -50,7 +52,7 @@ export default function Profile() {
       <div className="container">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading your profile...</p>
+          <p>{translations[language].loading}</p>
         </div>
       </div>
     );
@@ -59,77 +61,81 @@ export default function Profile() {
   return (
     <div className="container">
       <header></header>
-      <h1>Your Profile</h1>
+      <h1>{translations[language].yourProfile}</h1>
 
-      {/* Profile content with proper spacing */}
       <div className="profile-content">
         {profile && (
           <div className="profile-card">
-            <h2>Your Information</h2>
+            <h2>{translations[language].yourInfo}</h2>
             <p>
-              <strong>Email:</strong> {user.email}
+              <strong>{translations[language].emailLabel}</strong> {user.email}
             </p>
             {profile.answers && (
               <>
                 <p>
-                  <strong>Identity:</strong>{" "}
-                  {profile.answers.identity || "Not specified"}
+                  <strong>{translations[language].identityLabel}</strong>{" "}
+                  {profile.answers.identity ||
+                    translations[language].notSpecified}
                 </p>
                 <p>
-                  <strong>Pronouns:</strong>{" "}
-                  {profile.answers.pronouns || "Not specified"}
+                  <strong>{translations[language].pronounsLabel}</strong>{" "}
+                  {profile.answers.pronouns ||
+                    translations[language].notSpecified}
                 </p>
               </>
             )}
             <p>
-              <strong>Account Status:</strong>{" "}
-              {hasPaid ? "Premium Member" : "Free Account"}
+              <strong>{translations[language].accountStatus}</strong>{" "}
+              {hasPaid
+                ? translations[language].premiumMember
+                : translations[language].freeAccount}
             </p>
           </div>
         )}
 
-        {/* Badge preview if applicable */}
         {hasAnsweredQuestions && hasPaid && (
           <div className="badge-preview-section">
-            <h3>Your Badge</h3>
-            <p>View your personalized pronoun badge.</p>
+            <h3>{translations[language].badgePreview}</h3>
+            <p>{translations[language].badgePreviewDesc}</p>
           </div>
         )}
       </div>
 
-      {/* Button container with proper spacing */}
       <div className="profile-actions">
         {hasAnsweredQuestions && hasPaid ? (
           <button
             onClick={() => router.push("/results")}
             className="view-badge-btn"
           >
-            View Your Badge
+            {translations[language].viewBadge}
           </button>
         ) : hasAnsweredQuestions ? (
           <button
             onClick={() => router.push("/paywall")}
             className="upgrade-btn"
           >
-            Upgrade to See Your Badge
+            {translations[language].upgrade}
           </button>
         ) : (
           <button
             onClick={() => router.push("/questions")}
             className="questions-btn"
           >
-            Complete Questions
+            {translations[language].completeQuestions}
           </button>
         )}
 
         <button onClick={() => router.push("/")} className="home-btn">
-          Back to Home
+          {translations[language].backToHome}
         </button>
 
         <button onClick={handleLogout} className="signout-btn">
-          Sign Out
+          {translations[language].signOut}
         </button>
       </div>
+      <button onClick={toggleLanguage}>
+        {translations[language].languageToggle}
+      </button>
     </div>
   );
 }

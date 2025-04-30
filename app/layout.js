@@ -1,49 +1,36 @@
 import { AuthProvider } from "../context/AuthContext";
 import "./globals.css";
-import { Comfortaa, Poppins } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
+import { LanguageProvider } from "../context/LanguageContext";
 
-// Load Comfortaa font for headings and accent text
-const comfortaa = Comfortaa({
+// Load Playfair Display for headings
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["300", "400", "700"],
+  weights: [400, 700],
   display: "swap",
-  variable: "--font-comfortaa",
 });
 
-// Load Poppins for body text and UI elements
-const poppins = Poppins({
+// Load Inter for body text
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weights: [400, 600],
   display: "swap",
-  variable: "--font-poppins",
 });
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${comfortaa.variable} ${poppins.variable}`}>
+    <html lang="en">
       <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;600&display=swap"
+          rel="stylesheet"
         />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Pronoun Pride" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="theme-color" content="#8e44ad" />
       </head>
-      <body className={comfortaa.className}>
-        {/* Pride flag gradient header */}
-        <header className="pride-header"></header>
-
-        {/* Main content wrapped in auth provider */}
-        <AuthProvider>{children}</AuthProvider>
-
-        {/* Optional: Add a subtle footer */}
-        <footer className="app-footer">
-          <p>Made with 💜 and Pride</p>
-        </footer>
+      <body className={inter.className}>
+        <LanguageProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
